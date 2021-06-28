@@ -16,5 +16,53 @@
             <ColumnDefinition Width="0.3*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <TreeView Grid.Column="0">
+            <TreeViewItem Header="C:" IsExpanded="True">
+                <TreeViewItem Header="Program Files"/>
+                <TreeViewItem Header="Program Files (x86)"/>
+                <TreeViewItem Header="Users">
+                    <TreeViewItem Header="SU"/>
+                </TreeViewItem>
+                <TreeViewItem Header="Windows"/>
+            </TreeViewItem>
+            <TreeViewItem Header="D:">
+                <TreeViewItem Header="Some Folder">
+                    <TreeViewItem Header="main.cpp"/>
+                    <TreeViewItem Header="Program.cs"/>
+                </TreeViewItem>
+            </TreeViewItem>
+            <TreeViewItem Header="E:"/>
+        </TreeView>
+        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True">
+            <hc:TabItem Header="Program Files">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="Button" BasedOn="{StaticResource ButtonIconCircular}">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                </Style>
+                            </StackPanel.Resources>
+                            <Button hc:IconElement.Geometry="{StaticResource LeftGeometry}" hc:IconElement.Width="8" Padding="0"/>
+                            <Button hc:IconElement.Geometry="{StaticResource RightGeometry}" hc:IconElement.Width="8" Margin="2 0"/>
+                            <Button hc:IconElement.Geometry="{StaticResource UpGeometry}" hc:IconElement.Width="15" Padding="0" Margin="0 0 2 0"/>
+                        </StackPanel>
+                        <hc:TextBox Grid.Column="1"/>
+                    </Grid>
+                    <DataGrid Grid.Row="1">
+
+                    </DataGrid>
+                </Grid>
+            </hc:TabItem>
+            <hc:TabItem Header="Downloads"></hc:TabItem>
+        </hc:TabControl>
     </Grid>
 </Window>
