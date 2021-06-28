@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using MGFM.Models.FS;
+using MgMvvmTools;
+using File = MGFM.Models.FS.File;
 
+
+//FIXME: исправить работу с относительными путями (устанавливать текущий путь через Directory.SetCurrentDirectory())
 namespace MGFM.Models.FileManager
 {
-    public class FileManagerTab
+    public class FileManagerTab : NotifyPropertyChanged
     {
         public FileManagerTab()
         {
@@ -23,55 +29,114 @@ namespace MGFM.Models.FileManager
         private void Initialize(string folderPath)
         {
             folderPath ??= Folder.MyComputerFolder;
-            CurrentFolder = new Folder(folderPath);
-            NavigationHistory = new ObservableCollection<Folder> { CurrentFolder };
+            Navigate(folderPath);
+            //NavigationHistory = new ObservableCollection<Folder> { currentFolder };
         }
 
         public Folder CurrentFolder
         {
-            get => NavigationHistory[_navigationHistoryPosition];
-            private set => _navigationHistoryPosition = NavigationHistory.IndexOf(value);
+            get => NavigationHistory?.ElementAtOrDefault(NavigationHistoryPosition);
+            private set => NavigationHistoryPosition = NavigationHistory?.IndexOf(value) ?? -1;
+        }
+
+        public string CurrentPath
+        {
+            get => _currentPath;
+            set
+            {
+                _currentPath = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void ActualizeCurrentPath()
+        {
+            if (CurrentFolder != null)
+            {
+                CurrentPath = CurrentFolder.Path;
+            }
         }
 
         public File SelectedFile { get; set; }
 
-        public ObservableCollection<Folder> NavigationHistory { get; set; }
+        public ObservableCollection<Folder> NavigationHistory { get; set; } = new();
 
+        private int NavigationHistoryPosition
+        {
+            get => _navigationHistoryPosition;
+            set
+            {
+                _navigationHistoryPosition = value;
+                OnPropertyChanged(nameof(CurrentFolder));
+                ActualizeCurrentPath();
+            }
+        }
+
+        private string _currentPath;
         private int _navigationHistoryPosition;
 
-        public bool CanGoBack => _navigationHistoryPosition >= 1;
+        public bool CanGoBack => NavigationHistoryPosition >= 1;
 
         public void GoBack()
         {
-            if (CanGoBack)
-            {
-                _navigationHistoryPosition--;
-            }
+            if (!CanGoBack) return;
+
+            NavigationHistoryPosition--;
+            OnPropertyChanged(nameof(CurrentFolder));
         }
 
-        public bool CanGoForward => NavigationHistory != null && _navigationHistoryPosition < NavigationHistory.Count - 1;
+        public bool CanGoForward => NavigationHistory != null && NavigationHistoryPosition < NavigationHistory.Count - 1;
 
         public void GoForward()
         {
-            if (CanGoForward)
+            if (!CanGoForward) return;
+            
+            NavigationHistoryPosition++;
+            OnPropertyChanged(nameof(CurrentFolder));
+        }
+
+        private string ParentDirectory => CurrentFolder?.ParentDirectory;
+
+        public bool CanGoToParent => ParentDirectory != null;
+
+        public void GoToParent()
+        {
+            if (CanGoToParent)
             {
-                _navigationHistoryPosition++;
+                Navigate(ParentDirectory);
             }
         }
 
+        public void Navigate(Folder folder) => Navigate(folder.Path);
+
         public void Navigate(string folderPath)
         {
+            if (folderPath == null 
+                || folderPath == CurrentFolder?.Path 
+                || folderPath != Folder.MyComputerFolder && !new DirectoryInfo(folderPath).Exists)
+            {
+                return;
+            }
+
             if (CanGoForward)
             {
-                for (var i = _navigationHistoryPosition + 1; i < NavigationHistory.Count; i++)
+                for (var i = NavigationHistoryPosition + 1; i < NavigationHistory.Count; i++)
                 {
                     NavigationHistory.RemoveAt(i);
                 }
             }
 
-            var folder = new Folder(folderPath);
+            var folder = new Folder(folderPath, true);
             NavigationHistory.Add(folder);
             CurrentFolder = folder;
         }
+
+        public ICommand GoBackCommand => new Command(GoBack, () => CanGoBack);
+
+        public ICommand GoForwardCommand => new Command(GoForward, () => CanGoForward);
+
+        public ICommand GoToParentCommand => new Command(GoToParent, () => CanGoToParent);
+
+        public ICommand NavigateCommand => new Command(() => Navigate(CurrentPath));
     }
 }
