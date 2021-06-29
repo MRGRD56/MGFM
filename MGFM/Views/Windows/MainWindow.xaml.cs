@@ -25,10 +25,13 @@ namespace MGFM.Views.Windows
     public partial class MainWindow : Window
     {
         private MainWindowViewModel ViewModel => this.GetDataContext<MainWindowViewModel>();
-
+        
         private IInputElement GetFocusedElement() => FocusManager.GetFocusedElement(this);
         private T GetFocusedElement<T>() where T : class, IInputElement => GetFocusedElement() as T;
-        
+
+        //private TabItem SelectedTabItem => FileManagerTabControl.SelectedItem as TabItem;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -57,26 +60,32 @@ namespace MGFM.Views.Windows
 
         private void HandleFileOpen(object dataGridRowSender)
         {
-            var file = GetFileFromDataGridRowSender(dataGridRowSender);
-            switch (file)
+            var fileBase = GetFileFromDataGridRowSender(dataGridRowSender);
+            switch (fileBase)
             {
-                case File:
-                    Process.Start("explorer.exe", file.Path);
+                case File file:
+                    file.Open();
                     break;
                 case Folder:
-                    ViewModel.CurrentTab.Navigate(file.Path);
+                    ViewModel.CurrentTab.Navigate(fileBase.Path);
                     break;
             }
         }
 
         private void OnFileMouseDown(object sender, MouseButtonEventArgs e)
         {
-            var file = GetFileFromDataGridRowSender(sender);
-            if (file is not Folder folder) return;
+            var fileBase = GetFileFromDataGridRowSender(sender);
 
-            if (e.ChangedButton == MouseButton.Middle)
+            if (e.ChangedButton != MouseButton.Middle) return;
+            
+            switch (fileBase)
             {
-                ViewModel.OpenInNewTab(folder.Path);
+                case Folder folder:
+                    ViewModel.OpenInNewTab(folder.Path);
+                    break;
+                case File file:
+                    file.OpenWith();
+                    break;
             }
         }
 
@@ -91,6 +100,11 @@ namespace MGFM.Views.Windows
 
 
             //}
+        }
+
+        private void OnCurrentPathTextBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            ViewModel.CurrentTab.ActualizeCurrentPath();
         }
     }
 }

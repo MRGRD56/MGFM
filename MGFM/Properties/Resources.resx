@@ -141,4 +141,7 @@
   <data name="FM_Table_Size" xml:space="preserve">
     <value>Size</value>
   </data>
+  <data name="ThisComputer" xml:space="preserve">
+    <value>This PC</value>
+  </data>
 </root>

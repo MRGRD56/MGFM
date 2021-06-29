@@ -141,4 +141,7 @@
   <data name="FM_Table_ModifiedDate" xml:space="preserve">
     <value>Дата изменения</value>
   </data>
+  <data name="ThisComputer" xml:space="preserve">
+    <value>Этот компьютер</value>
+  </data>
 </root>

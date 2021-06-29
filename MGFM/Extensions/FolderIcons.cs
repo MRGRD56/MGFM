@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MGFM.Extensions
 {
-    public static class DefaultIcons
+    public static class FolderIcons
     {
         private static readonly Lazy<Icon> LazyFolderIcon = new(FetchIcon, true);
 
@@ -23,14 +23,14 @@ namespace MGFM.Extensions
             return icon;
         }
 
-        private static Icon ExtractFromPath(string path)
+        public static Icon ExtractFromPath(string path)
         {
             SHFILEINFO shinfo = new SHFILEINFO();
             SHGetFileInfo(
                 path,
                 0, ref shinfo, (uint)Marshal.SizeOf(shinfo),
                 SHGFI_ICON | SHGFI_LARGEICON);
-            return System.Drawing.Icon.FromHandle(shinfo.hIcon);
+            return Icon.FromHandle(shinfo.hIcon);
         }
 
         //Struct used by SHGetFileInfo function

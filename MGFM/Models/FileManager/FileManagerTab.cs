@@ -16,22 +16,26 @@ namespace MGFM.Models.FileManager
 {
     public class FileManagerTab : NotifyPropertyChanged
     {
-        public FileManagerTab()
+        public FileManagerTab(EventHandler navigated = null)
         {
-            Initialize(null);
+            Initialize(null, navigated);
         }
 
-        public FileManagerTab(string folderPath)
+        public FileManagerTab(string folderPath, EventHandler navigated = null)
         {
-            Initialize(folderPath);
+            Initialize(folderPath, navigated);
+            
         }
 
-        private void Initialize(string folderPath)
+        private void Initialize(string folderPath, EventHandler navigated)
         {
             folderPath ??= Folder.MyComputerFolder;
             Navigate(folderPath);
+            Navigated += navigated;
             //NavigationHistory = new ObservableCollection<Folder> { currentFolder };
         }
+
+        private event EventHandler Navigated;
 
         public Folder CurrentFolder
         {
@@ -77,6 +81,7 @@ namespace MGFM.Models.FileManager
                 _navigationHistoryPosition = value;
                 OnPropertyChanged(nameof(CurrentFolder));
                 ActualizeCurrentPath();
+                Navigated?.Invoke(this, new EventArgs());
             }
         }
 
@@ -164,5 +169,10 @@ namespace MGFM.Models.FileManager
         public ICommand GoToParentCommand => new Command(GoToParent, () => CanGoToParent);
 
         public ICommand NavigateCommand => new Command(() => Navigate(CurrentPath));
+        public ICommand NavigateToFolderCommand => new Command<Folder>(Navigate);
+
+        public ICommand ActualizeCurrentPathCommand => new Command(ActualizeCurrentPath);
+
+        public override string ToString() => CurrentFolder.ShortName;
     }
 }

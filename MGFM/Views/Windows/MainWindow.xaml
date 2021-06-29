@@ -8,8 +8,14 @@
         xmlns:windowsViewModels="clr-namespace:MGFM.ViewModels.WindowsViewModels"
         mc:Ignorable="d"
         xmlns:properties="clr-namespace:MGFM.Properties"
-        Title="MGFM" Height="450" Width="800"
-        KeyDown="OnKeyDown">
+        Title="{Binding CurrentTab.CurrentFolder.ShortName}" 
+        Icon="{Binding CurrentTab.CurrentFolder.IconSource}"
+        Height="505" Width="900"
+        KeyDown="OnKeyDown"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <DiscreteObjectKeyFrame x:Key="ViewModelResource" Value="{Binding}"/>
+    </Window.Resources>
     <Window.DataContext>
         <windowsViewModels:MainWindowViewModel/>
     </Window.DataContext>
@@ -43,9 +49,10 @@
             </TreeViewItem>
             <TreeViewItem Header="E:"/>
         </TreeView>
-        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True" 
+        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True"
                        ItemsSource="{Binding Tabs}"
-                       SelectedItem="{Binding CurrentTab}">
+                       SelectedItem="{Binding CurrentTab}"
+                       Name="FileManagerTabControl">
             <hc:TabControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
@@ -83,10 +90,13 @@
                                         Command="{Binding GoToParentCommand}"/>
                             </StackPanel>
                             <TextBox Grid.Column="1" Text="{Binding CurrentPath, 
-                                UpdateSourceTrigger=PropertyChanged}">
+                                UpdateSourceTrigger=PropertyChanged}"
+                                     LostFocus="OnCurrentPathTextBoxLostFocus">
                                 <TextBox.InputBindings>
                                     <KeyBinding Key="Return" 
                                                 Command="{Binding NavigateCommand}"/>
+                                    <KeyBinding Key="Escape"
+                                                Command="{Binding ActualizeCurrentPathCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
                         </Grid>
@@ -123,11 +133,32 @@
                                     <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
                                     <!--<EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>-->
                                     <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Open" 
+                                                          Command="{Binding OpenCommand}"
+                                                          Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+                                                <MenuItem Header="Open" 
+                                                          Command="{Binding Value.CurrentTab.NavigateToFolderCommand, Source={StaticResource ViewModelResource}}"
+                                                          CommandParameter="{Binding}"
+                                                          Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+
+                                                <MenuItem Header="Open with..." 
+                                                          Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                                          Command="{Binding OpenWithCommand}"/>
+                                                <MenuItem Header="Open in new tab"
+                                                          Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                                          Command="{Binding Value.OpenInNewTabCommand, Source={StaticResource ViewModelResource}}"
+                                                          CommandParameter="{Binding}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
-                                                        SortMemberPath="ShortName"
+                                                        SortMemberPath="ComparableFile"
                                                         Width="300">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>

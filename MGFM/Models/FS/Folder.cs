@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Navigation;
 using HandyControl.Data;
 using MGFM.Extensions;
+using MGFM.Properties;
 using MessageBox = HandyControl.Controls.MessageBox;
 
 namespace MGFM.Models.FS
@@ -24,15 +25,15 @@ namespace MGFM.Models.FS
 
         public string ParentDirectory => Path == MyComputerFolder ? null : Info?.Parent?.FullName ?? "";
 
-        private static readonly Icon DefaultIcon = DefaultIcons.FolderLarge;
+        private static readonly Icon DefaultIcon = FolderIcons.FolderLarge;
 
         public override DirectoryInfo Info => string.IsNullOrEmpty(Path) ? null : new DirectoryInfo(Path);
 
         public ObservableCollection<FileBase> Files { get; } = new();
 
-        public override Icon Icon => DefaultIcon;
+        public override Icon Icon => FolderIcons.ExtractFromPath(Path) ?? DefaultIcon;
 
-        public override string ShortName => Info?.Name ?? "This computer";
+        public override string ShortName => Info?.Name ?? Resources.ThisComputer;
 
         public override FileSize Size => new();
 

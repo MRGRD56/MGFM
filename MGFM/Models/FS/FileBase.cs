@@ -1,19 +1,34 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Windows.Input;
 using System.Windows.Media;
 using MGFM.Extensions;
+using MGFM.Models.FS.Additional;
+using MgMvvmTools;
 
 namespace MGFM.Models.FS
 {
-    public abstract class FileBase
+    public abstract class FileBase : NotifyPropertyChanged
     {
+        private string _path;
+
         public FileBase(string path)
         {
             Path = path;
         }
 
-        public string Path { get; set; }
+        public ComparableFile ComparableFile => new(this);
+
+        public string Path
+        {
+            get => _path;
+            set
+            {
+                _path = value;
+                OnPropertyChanged();
+            }
+        }
 
         public abstract FileSystemInfo Info { get; }
 

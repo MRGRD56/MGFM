@@ -131,5 +131,14 @@ namespace MGFM.Properties {
                 return ResourceManager.GetString("FM_Table_Size", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This PC.
+        /// </summary>
+        public static string ThisComputer {
+            get {
+                return ResourceManager.GetString("ThisComputer", resourceCulture);
+            }
+        }
     }
 }
