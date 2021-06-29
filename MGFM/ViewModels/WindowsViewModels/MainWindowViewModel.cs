@@ -13,13 +13,29 @@ namespace MGFM.ViewModels.WindowsViewModels
 {
     public class MainWindowViewModel : BaseViewModel
     {
-        public ObservableCollection<FileManagerTab> Tabs { get; set; } = new() { new FileManagerTab(@"C:\Users\SU") };
+        private FileManagerTab _currentTab;
+        public ObservableCollection<FileManagerTab> Tabs { get; } = new() { new FileManagerTab(@"C:\Users\SU") };
 
-        public FileManagerTab CurrentTab { get; set; }
+        public FileManagerTab CurrentTab
+        {
+            get => _currentTab;
+            set
+            {
+                _currentTab = value;
+                OnPropertyChanged();
+            }
+        }
 
         public MainWindowViewModel()
         {
             CurrentTab = Tabs.FirstOrDefault();
+        }
+
+        public void OpenInNewTab(string folderPath)
+        {
+            var newTab = new FileManagerTab(folderPath);
+            Tabs.Add(newTab);
+            CurrentTab = newTab;
         }
     }
 }

@@ -7,10 +7,20 @@
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:windowsViewModels="clr-namespace:MGFM.ViewModels.WindowsViewModels"
         mc:Ignorable="d"
-        Title="MGFM" Height="450" Width="800">
+        xmlns:properties="clr-namespace:MGFM.Properties"
+        Title="MGFM" Height="450" Width="800"
+        KeyDown="OnKeyDown">
     <Window.DataContext>
         <windowsViewModels:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Key="Up" Modifiers="Alt" Command="{Binding CurrentTab.GoToParentCommand}"/>
+        <KeyBinding Key="Left" Modifiers="Alt" Command="{Binding CurrentTab.GoBackCommand}"/>
+        <KeyBinding Key="Right" Modifiers="Alt" Command="{Binding CurrentTab.GoForwardCommand}"/>
+        <KeyBinding Key="Back" Command="{Binding CurrentTab.GoBackCommand}"/>
+        <KeyBinding Key="BrowserBack" Command="{Binding CurrentTab.GoBackCommand}"/>
+        <KeyBinding Key="BrowserForward" Command="{Binding CurrentTab.GoForwardCommand}"/>
+    </Window.InputBindings>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.3*"/>
@@ -33,7 +43,8 @@
             </TreeViewItem>
             <TreeViewItem Header="E:"/>
         </TreeView>
-        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True" ItemsSource="{Binding Tabs}"
+        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True" 
+                       ItemsSource="{Binding Tabs}"
                        SelectedItem="{Binding CurrentTab}">
             <hc:TabControl.ItemTemplate>
                 <DataTemplate>
@@ -80,22 +91,48 @@
                             </TextBox>
                         </Grid>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding CurrentFolder.Files}"
-                                  AutoGenerateColumns="False">
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True">
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="Padding" Value="2"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGrid.CellStyle>
                             <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
-                                    <!--<Setter Property="Margin" Value="0"/>
-                                    <Setter Property="Height" Value="30"/>-->
-                                    <!--<Setter Property=""/>-->
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <!--<Setter Property="Background" Value="Transparent"/>-->
+                                    <!--<Setter Property="Height" Value="20"/>-->
+                                    <!--<Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>-->
+                                    <EventSetter Event="MouseDown" Handler="OnFileMouseDown"/>
                                     <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
-                                    <EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>
+                                    <!--<EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>-->
+                                    <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTemplateColumn Header="Name">
+                                <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
+                                                        SortMemberPath="ShortName"
+                                                        Width="300">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                                <Image Source="{Binding IconSource}" Width="16" Height="16"
+                                                <Image Source="{Binding IconSource}" Width="17"
                                                        VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
                                                            VerticalAlignment="Center"/>
@@ -103,6 +140,12 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_ModifiedDate}"
+                                                    Binding="{Binding ModifiedDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_Size}" 
+                                                    Binding="{Binding Size}"
+                                                    Width="100"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using MGFM.Models.FS;
@@ -11,7 +12,6 @@ using MgMvvmTools;
 using File = MGFM.Models.FS.File;
 
 
-//FIXME: исправить работу с относительными путями (устанавливать текущий путь через Directory.SetCurrentDirectory())
 namespace MGFM.Models.FileManager
 {
     public class FileManagerTab : NotifyPropertyChanged
@@ -46,6 +46,14 @@ namespace MGFM.Models.FileManager
             {
                 _currentPath = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public void ActualizeCurrentPath(string path)
+        {
+            if (path != null)
+            {
+                CurrentPath = path;
             }
         }
 
@@ -111,10 +119,28 @@ namespace MGFM.Models.FileManager
 
         public void Navigate(string folderPath)
         {
+            if (!string.IsNullOrWhiteSpace(CurrentFolder?.Path))
+            {
+                Directory.SetCurrentDirectory(CurrentFolder.Path);
+            }
+            else if (CurrentFolder?.Path == Folder.MyComputerFolder)
+            {
+                if (Regex.IsMatch(folderPath, @"^\.+$"))
+                {
+                    folderPath = Folder.MyComputerFolder;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(folderPath))
+            {
+                folderPath = Path.GetFullPath(folderPath);
+            }
+
             if (folderPath == null 
                 || folderPath == CurrentFolder?.Path 
                 || folderPath != Folder.MyComputerFolder && !new DirectoryInfo(folderPath).Exists)
             {
+                ActualizeCurrentPath(folderPath);
                 return;
             }
 

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.IO;
 
 namespace MGFM.Models.FS
@@ -10,10 +11,12 @@ namespace MGFM.Models.FS
 
         }
 
-        public FileInfo FileInfo => new(Path);
-
+        public override FileInfo Info => new(Path);
+        
         public override Icon Icon => Icon.ExtractAssociatedIcon(Path);
 
-        public override string ShortName => FileInfo.Name;
+        public override string ShortName => Info.Name;
+
+        public override FileSize Size => new(Info.Length);
     }
 }
