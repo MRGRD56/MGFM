@@ -8,13 +8,35 @@
 
   <ItemGroup>
     <None Remove="Assets\Images\baseline_add_black_24dp.png" />
+    <None Remove="Assets\Images\round_grid_view_black_24dp.png" />
+    <None Remove="Assets\Images\round_table_chart_black_24dp.png" />
+    <None Remove="Assets\Images\round_table_view_black_24dp.png" />
+    <None Remove="Assets\Images\round_view_list_black_24dp.png" />
+    <None Remove="Assets\Images\Svg\grid_view_black_24dp.svg" />
+    <None Remove="Assets\Images\Svg\table_chart_black_24dp.svg" />
+    <None Remove="Assets\Images\Svg\view_list_black_24dp.svg" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HandyControl" Version="3.1.0" />
+    <COMReference Include="Shell32">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>50a7e9b0-70ef-11d1-b75a-00a0c90564fe</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+	<ItemGroup>
+    <PackageReference Include="HandyControl" Version="3.2.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.1.0" />
     <PackageReference Include="MgMvvmTools" Version="1.2.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
+    <PackageReference Include="SharpVectors" Version="1.7.5" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 
@@ -26,7 +48,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\Images\baseline_add_black_24dp.png" />
+    <Resource Include="Assets\Images\Png\baseline_add_black_24dp.png" />
+    <Resource Include="Assets\Images\Png\round_grid_view_black_24dp.png" />
+    <Resource Include="Assets\Images\Png\round_table_chart_black_24dp.png" />
+    <Resource Include="Assets\Images\Png\round_table_view_black_24dp.png" />
+    <Resource Include="Assets\Images\Png\round_view_list_black_24dp.png" />
+    <Resource Include="Assets\Images\Svg\grid_view_black_24dp.svg" />
+    <Resource Include="Assets\Images\Svg\table_chart_black_24dp.svg" />
+    <Resource Include="Assets\Images\Svg\view_list_black_24dp.svg" />
   </ItemGroup>
 
   <ItemGroup>

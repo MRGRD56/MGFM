@@ -15,10 +15,12 @@ namespace MGFM.Models.FS
         }
 
         public override FileInfo Info => new(Path);
-        
-        public override Icon Icon => Icon.ExtractAssociatedIcon(Path);
 
-        public override string ShortName => Info.Name;
+        public override Icon IconSmall => FileIcons.ExtractFromPath(Path, false);//IconLarge;
+
+        public override Icon IconLarge => FileIcons.ExtractFromPath(Path, true);//Icon.ExtractAssociatedIcon(Path);
+
+        public override string ShortName => Info.Extension == ".lnk" ? Info.Name[..^4] : Info.Name;
 
         public override FileSize Size => new(Info.Length);
 

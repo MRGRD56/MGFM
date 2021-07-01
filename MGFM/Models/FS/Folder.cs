@@ -25,13 +25,14 @@ namespace MGFM.Models.FS
 
         public string ParentDirectory => Path == MyComputerFolder ? null : Info?.Parent?.FullName ?? "";
 
-        private static readonly Icon DefaultIcon = FolderIcons.FolderLarge;
+        private static readonly Icon DefaultIcon = FileIcons.FolderLarge;
 
         public override DirectoryInfo Info => string.IsNullOrEmpty(Path) ? null : new DirectoryInfo(Path);
 
         public ObservableCollection<FileBase> Files { get; } = new();
 
-        public override Icon Icon => FolderIcons.ExtractFromPath(Path) ?? DefaultIcon;
+        public override Icon IconSmall => FileIcons.ExtractFromPath(Path, false) ?? DefaultIcon;
+        public override Icon IconLarge => FileIcons.ExtractFromPath(Path, true) ?? DefaultIcon;
 
         public override string ShortName => Info?.Name ?? Resources.ThisComputer;
 

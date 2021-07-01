@@ -9,27 +9,27 @@ using System.Threading.Tasks;
 
 namespace MGFM.Extensions
 {
-    public static class FolderIcons
+    public static class FileIcons
     {
         private static readonly Lazy<Icon> LazyFolderIcon = new(FetchIcon, true);
-
+        
         public static Icon FolderLarge => LazyFolderIcon.Value;
 
         private static Icon FetchIcon()
         {
             var tmpDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-            var icon = ExtractFromPath(tmpDir);
+            var icon = ExtractFromPath(tmpDir, true);
             Directory.Delete(tmpDir);
             return icon;
         }
 
-        public static Icon ExtractFromPath(string path)
+        public static Icon ExtractFromPath(string path, bool isLarge)
         {
             SHFILEINFO shinfo = new SHFILEINFO();
             SHGetFileInfo(
                 path,
                 0, ref shinfo, (uint)Marshal.SizeOf(shinfo),
-                SHGFI_ICON | SHGFI_LARGEICON);
+                SHGFI_ICON | (isLarge ? SHGFI_LARGEICON : SHGFI_SMALLICON));
             return Icon.FromHandle(shinfo.hIcon);
         }
 

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Shell32;
+using Folder = MGFM.Models.FS.Folder;
 
 namespace MGFM.Extensions
 {
@@ -63,6 +65,25 @@ namespace MGFM.Extensions
             var args = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shell32.dll");
             args += ",OpenAs_RunDLL " + filePath;
             Process.Start("rundll32.exe", args);
+        }
+
+        public static string GetShortcutTargetFile(string shortcutFilename)
+        {
+            if (Path.GetExtension(shortcutFilename) != ".lnk")
+            {
+                throw new InvalidOperationException("The file is not a shortcut. A shortcut must have an .lnk extension.");
+            }
+
+            var pathOnly = Path.GetDirectoryName(shortcutFilename);
+            var filenameOnly = Path.GetFileName(shortcutFilename);
+
+            var shell = new Shell();
+            var folder = shell.NameSpace(pathOnly);
+            var folderItem = folder.ParseName(filenameOnly);
+            if (folderItem == null) return string.Empty;
+            
+            var link = (ShellLinkObject) folderItem.GetLink;
+            return link.Path;
         }
     }
 }

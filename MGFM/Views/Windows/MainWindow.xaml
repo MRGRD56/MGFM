@@ -6,15 +6,39 @@
         xmlns:local="clr-namespace:MGFM.Views.Windows"
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:windowsViewModels="clr-namespace:MGFM.ViewModels.WindowsViewModels"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
         xmlns:properties="clr-namespace:MGFM.Properties"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="{Binding CurrentTab.CurrentFolder.ShortName}" 
-        Icon="{Binding CurrentTab.CurrentFolder.IconSource}"
+        Icon="{Binding CurrentTab.CurrentFolder.IconLargeSource}"
         Height="505" Width="900"
         KeyDown="OnKeyDown"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
     <Window.Resources>
         <DiscreteObjectKeyFrame x:Key="ViewModelResource" Value="{Binding}"/>
+        <ContextMenu x:Key="FileContextMenu">
+            <MenuItem Header="Open" Command="{Binding OpenCommand}"
+                      Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+            <MenuItem Header="Open" 
+                      Command="{Binding Value.CurrentTab.NavigateToFolderCommand, Source={StaticResource ViewModelResource}}"
+                      CommandParameter="{Binding}"
+                      Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"/>
+
+            <MenuItem Header="Open with..." 
+                      Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"
+                      Command="{Binding OpenWithCommand}"/>
+            <MenuItem Header="Open in new tab"
+                      Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"
+                      Command="{Binding Value.OpenInNewTabCommand, Source={StaticResource ViewModelResource}}"
+                      CommandParameter="{Binding}"/>
+            <Separator/>
+            <MenuItem Header="Copy"/>
+            <MenuItem Header="Paste"/>
+            <!--<MenuItem Header="{Binding Value.CurrentTab.CurrentFolder.ShortName, StringFormat={}Paste to {0}, Source={StaticResource ViewModelResource}}"/>-->
+        </ContextMenu>
     </Window.Resources>
     <Window.DataContext>
         <windowsViewModels:MainWindowViewModel/>
@@ -28,11 +52,49 @@
         <KeyBinding Key="BrowserForward" Command="{Binding CurrentTab.GoForwardCommand}"/>
     </Window.InputBindings>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.3*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <TreeView Grid.Column="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3">
+                <StackPanel.Resources>
+                    <Style TargetType="Button" BasedOn="{StaticResource ButtonCustom}" x:Key="IconButton">
+                        <Setter Property="Width" Value="32"/>
+                        <Setter Property="Height" Value="32"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Foreground" Value="#616161"/>
+                    </Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource IconButton}" x:Key="IconButtonActive">
+                        <Setter Property="Foreground" Value="#1e88e5"/>
+                    </Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource IconButton}"/>
+                    <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource PackIcon24}"/>
+                </StackPanel.Resources>
+                <Button Style="{StaticResource IconButtonActive}">
+                    <materialDesign:PackIcon Kind="TableLarge"/>
+                </Button>
+                <Button>
+                    <materialDesign:PackIcon Kind="ViewGrid"/>
+                </Button>
+                <Button>
+                    <materialDesign:PackIcon Kind="ViewList" Height="30" Width="30"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!--<TreeView Grid.Column="0" Width="300">
             <TreeViewItem Header="C:" IsExpanded="True">
                 <TreeViewItem Header="Program Files"/>
                 <TreeViewItem Header="Program Files (x86)"/>
@@ -48,140 +110,127 @@
                 </TreeViewItem>
             </TreeViewItem>
             <TreeViewItem Header="E:"/>
-        </TreeView>
-        <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True"
-                       ItemsSource="{Binding Tabs}"
-                       SelectedItem="{Binding CurrentTab}"
-                       Name="FileManagerTabControl">
-            <hc:TabControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                        <Image Source="{Binding CurrentFolder.IconSource}" Width="20" Height="20"
+        </TreeView>-->
+            <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True"
+                           ItemsSource="{Binding Tabs}"
+                           SelectedItem="{Binding CurrentTab}"
+                           Name="FileManagerTabControl">
+                <hc:TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <Image Source="{Binding CurrentFolder.IconSmallSource}" MaxWidth="16" MaxHeight="16"
                                VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding CurrentFolder.ShortName}" Margin="3 0 0 0"
+                            <TextBlock Text="{Binding CurrentFolder.ShortName}" Margin="3 0 0 0"
                                    VerticalAlignment="Center"/>
-                    </StackPanel>
-                </DataTemplate>
-            </hc:TabControl.ItemTemplate>
-            <hc:TabControl.ContentTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                <StackPanel.Resources>
-                                    <Style TargetType="Button" BasedOn="{StaticResource ButtonIconCircular}">
-                                        <Setter Property="Foreground" Value="Black"/>
-                                    </Style>
-                                </StackPanel.Resources>
-                                <Button hc:IconElement.Geometry="{StaticResource LeftGeometry}" hc:IconElement.Width="8" Padding="0"
+                        </StackPanel>
+                    </DataTemplate>
+                </hc:TabControl.ItemTemplate>
+                <hc:TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <Grid Background="White">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="2.3*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <StackPanel.Resources>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ButtonIconCircular}">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <Button hc:IconElement.Geometry="{StaticResource LeftGeometry}" hc:IconElement.Width="8" Padding="0"
                                         Command="{Binding GoBackCommand}"/>
-                                <Button hc:IconElement.Geometry="{StaticResource RightGeometry}" hc:IconElement.Width="8" Margin="2 0"
+                                    <Button hc:IconElement.Geometry="{StaticResource RightGeometry}" hc:IconElement.Width="8" Margin="2 0"
                                         Command="{Binding GoForwardCommand}"/>
-                                <Button hc:IconElement.Geometry="{StaticResource UpGeometry}" hc:IconElement.Width="15" Padding="0" 
+                                    <Button hc:IconElement.Geometry="{StaticResource UpGeometry}" hc:IconElement.Width="15" Padding="0" 
                                         Margin="0 0 2 0"
                                         Command="{Binding GoToParentCommand}"/>
-                            </StackPanel>
-                            <TextBox Grid.Column="1" Text="{Binding CurrentPath, 
-                                UpdateSourceTrigger=PropertyChanged}"
-                                     LostFocus="OnCurrentPathTextBoxLostFocus">
-                                <TextBox.InputBindings>
-                                    <KeyBinding Key="Return" 
+                                </StackPanel>
+                                <TextBox Grid.Column="1" Text="{Binding CurrentPath, 
+                                             UpdateSourceTrigger=PropertyChanged}"
+                                         LostFocus="OnCurrentPathTextBoxLostFocus"
+                                         Margin="0 0 1 0">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Return" 
                                                 Command="{Binding NavigateCommand}"/>
-                                    <KeyBinding Key="Escape"
+                                        <KeyBinding Key="Escape"
                                                 Command="{Binding ActualizeCurrentPathCommand}"/>
-                                </TextBox.InputBindings>
-                            </TextBox>
-                        </Grid>
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding CurrentFolder.Files}"
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <hc:TextBox Grid.Column="2" Margin="1 0 0 0" hc:InfoElement.Placeholder="Search"/>
+                            </Grid>
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding CurrentFolder.Files}"
                                   AutoGenerateColumns="False"
-                                  IsReadOnly="True">
-                            <DataGrid.CellStyle>
-                                <Style TargetType="DataGridCell">
-                                    <Setter Property="Margin" Value="0"/>
-                                    <Setter Property="Padding" Value="2"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                                <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </DataGrid.CellStyle>
-                            <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow">
-                                    <Setter Property="Padding" Value="0"/>
-                                    <!--<Setter Property="Background" Value="Transparent"/>-->
-                                    <!--<Setter Property="Height" Value="20"/>-->
-                                    <!--<Setter Property="Template">
+                                  IsReadOnly="True" SelectionUnit="FullRow"
+                                  Background="Transparent">
+                                <DataGrid.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="3"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                                    <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.CellStyle>
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow">
+                                        <Setter Property="Padding" Value="0"/>
+                                        <!--<Setter Property="Background" Value="Transparent"/>-->
+                                        <!--<Setter Property="Height" Value="20"/>-->
+                                        <!--<Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate>
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>-->
-                                    <EventSetter Event="MouseDown" Handler="OnFileMouseDown"/>
-                                    <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
-                                    <!--<EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>-->
-                                    <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
-                                    <Setter Property="ContextMenu">
-                                        <Setter.Value>
-                                            <ContextMenu>
-                                                <MenuItem Header="Open" 
-                                                          Command="{Binding OpenCommand}"
-                                                          Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"/>
-                                                <MenuItem Header="Open" 
-                                                          Command="{Binding Value.CurrentTab.NavigateToFolderCommand, Source={StaticResource ViewModelResource}}"
-                                                          CommandParameter="{Binding}"
-                                                          Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"/>
-
-                                                <MenuItem Header="Open with..." 
-                                                          Visibility="{Binding IsFile, Converter={StaticResource Boolean2VisibilityConverter}}"
-                                                          Command="{Binding OpenWithCommand}"/>
-                                                <MenuItem Header="Open in new tab"
-                                                          Visibility="{Binding IsFolder, Converter={StaticResource Boolean2VisibilityConverter}}"
-                                                          Command="{Binding Value.OpenInNewTabCommand, Source={StaticResource ViewModelResource}}"
-                                                          CommandParameter="{Binding}"/>
-                                            </ContextMenu>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </DataGrid.RowStyle>
-                            <DataGrid.Columns>
-                                <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
+                                        <EventSetter Event="MouseDown" Handler="OnFileMouseDown"/>
+                                        <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
+                                        <!--<EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>-->
+                                        <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
+                                        <Setter Property="ContextMenu" Value="{StaticResource FileContextMenu}"/>
+                                    </Style>
+                                </DataGrid.RowStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
                                                         SortMemberPath="ComparableFile"
                                                         Width="300">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                                <Image Source="{Binding IconSource}" Width="17"
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                    <Image Source="{Binding IconSmallSource}" Width="16"
                                                        VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
+                                                    <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
                                                            VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_ModifiedDate}"
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_ModifiedDate}"
                                                     Binding="{Binding ModifiedDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
                                                     Width="120"/>
-                                <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_Size}" 
+                                    <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_Size}" 
                                                     Binding="{Binding Size}"
                                                     Width="100"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
-                </DataTemplate>
-            </hc:TabControl.ContentTemplate>
-        </hc:TabControl>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </DataTemplate>
+                </hc:TabControl.ContentTemplate>
+            </hc:TabControl>
+        </Grid>
     </Grid>
 </Window>
