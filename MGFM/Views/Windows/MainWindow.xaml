@@ -39,7 +39,9 @@
                       Command="{Binding Value.OpenInNewTabCommand, Source={StaticResource ViewModelResource}}"
                       CommandParameter="{Binding}"/>
             <Separator/>
-            <MenuItem Header="Copy"/>
+            <MenuItem Header="Copy"
+                      Command="{Binding Value.CopyFilesCommand, Source={StaticResource ViewModelResource}}"
+                      CommandParameter="{Binding SelectedItems, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=MultiSelector}}"/>
             <MenuItem Header="Paste"/>
             <!--<MenuItem Header="{Binding Value.CurrentTab.CurrentFolder.ShortName, StringFormat={}Paste to {0}, Source={StaticResource ViewModelResource}}"/>-->
         </ContextMenu>

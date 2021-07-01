@@ -152,6 +152,8 @@ namespace MGFM.ViewModels.WindowsViewModels
             Process.Start("explorer.exe", $"\"{CurrentTab.CurrentFolder.Path}\"");
         });
 
+        private bool IsFileSelected => CurrentTab?.SelectedFile != null;
+
         public ICommand RunFileCommand => new Command(() =>
         {
             switch (CurrentTab.SelectedFile)
@@ -163,6 +165,13 @@ namespace MGFM.ViewModels.WindowsViewModels
                     CurrentTab.Navigate(folder);
                     break;
             }
-        }, () => CurrentTab?.SelectedFile != null);
+        }, () => IsFileSelected);
+
+        public ICommand CopyFilesCommand => new Command<IEnumerable<FileBase>>(selectedFiles =>
+        {
+            var filesToCopy = new StringCollection();
+            filesToCopy.AddRange(selectedFiles.Select(x => x.Path).ToArray());
+            Clipboard.SetFileDropList(filesToCopy);
+        }, _ => IsFileSelected);
     }
 }
