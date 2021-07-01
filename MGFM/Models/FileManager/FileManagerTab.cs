@@ -69,7 +69,7 @@ namespace MGFM.Models.FileManager
             }
         }
 
-        public File SelectedFile { get; set; }
+        public FileBase SelectedFile { get; set; }
 
         public ObservableCollection<Folder> NavigationHistory { get; set; } = new();
 

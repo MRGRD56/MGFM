@@ -44,7 +44,7 @@ namespace MGFM.Views.Windows
 
         private static FileBase GetFileFromDataGridRowSender(object sender)
         {
-            var row = (DataGridRow) sender;
+            var row = (FrameworkElement) sender;
             var file = row.GetDataContext<FileBase>();
             return file;
         }
@@ -105,6 +105,19 @@ namespace MGFM.Views.Windows
         private void OnCurrentPathTextBoxLostFocus(object sender, RoutedEventArgs e)
         {
             ViewModel.CurrentTab.ActualizeCurrentPath();
+        }
+
+        private void OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            switch (e.ChangedButton)
+            {
+                case MouseButton.XButton1:
+                    ViewModel.CurrentTab.GoBack();
+                    break;
+                case MouseButton.XButton2:
+                    ViewModel.CurrentTab.GoForward();
+                    break;
+            }
         }
     }
 }

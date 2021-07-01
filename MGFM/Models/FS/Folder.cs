@@ -36,7 +36,8 @@ namespace MGFM.Models.FS
 
         public override string ShortName => Info?.Name ?? Resources.ThisComputer;
 
-        public override FileSize Size => new();
+        public override FileSize Size0 => new();
+        public override FileSize Size2 => new();
 
         public void UpdateFiles()
         {
@@ -83,5 +84,6 @@ namespace MGFM.Models.FS
         public async Task UpdateFilesAsync(CancellationToken cancellationToken = default) => await Task.Run(UpdateFiles, cancellationToken);
 
         public static string MyComputerFolder => Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
+        public static string UserProfileFolder => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 }

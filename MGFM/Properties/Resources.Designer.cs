@@ -124,7 +124,7 @@ namespace MGFM.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Size.
+        ///   Looks up a localized string similar to Size0.
         /// </summary>
         public static string FM_Table_Size {
             get {

@@ -10,14 +10,18 @@
         mc:Ignorable="d"
         xmlns:properties="clr-namespace:MGFM.Properties"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:MGFM.Converters"
+        xmlns:controls="clr-namespace:MGFM.Controls"
         Title="{Binding CurrentTab.CurrentFolder.ShortName}" 
         Icon="{Binding CurrentTab.CurrentFolder.IconLargeSource}"
         Height="505" Width="900"
         KeyDown="OnKeyDown"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
-        TextOptions.TextFormattingMode="Display">
+        TextOptions.TextFormattingMode="Display"
+        MouseDown="OnMouseDown">
     <Window.Resources>
+        <converters:FromActualHeightConverter x:Key="FromActualHeightConverter"/>
         <DiscreteObjectKeyFrame x:Key="ViewModelResource" Value="{Binding}"/>
         <ContextMenu x:Key="FileContextMenu">
             <MenuItem Header="Open" Command="{Binding OpenCommand}"
@@ -39,6 +43,12 @@
             <MenuItem Header="Paste"/>
             <!--<MenuItem Header="{Binding Value.CurrentTab.CurrentFolder.ShortName, StringFormat={}Paste to {0}, Source={StaticResource ViewModelResource}}"/>-->
         </ContextMenu>
+        <Style TargetType="Control" x:Key="FileItem">
+            <EventSetter Event="MouseDown" Handler="OnFileMouseDown"/>
+            <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
+            <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
+            <Setter Property="ContextMenu" Value="{StaticResource FileContextMenu}"/>
+        </Style>
     </Window.Resources>
     <Window.DataContext>
         <windowsViewModels:MainWindowViewModel/>
@@ -48,8 +58,8 @@
         <KeyBinding Key="Left" Modifiers="Alt" Command="{Binding CurrentTab.GoBackCommand}"/>
         <KeyBinding Key="Right" Modifiers="Alt" Command="{Binding CurrentTab.GoForwardCommand}"/>
         <KeyBinding Key="Back" Command="{Binding CurrentTab.GoBackCommand}"/>
-        <KeyBinding Key="BrowserBack" Command="{Binding CurrentTab.GoBackCommand}"/>
-        <KeyBinding Key="BrowserForward" Command="{Binding CurrentTab.GoForwardCommand}"/>
+        <!--<KeyBinding Key="BrowserBack" Command="{Binding CurrentTab.GoBackCommand}"/>
+        <KeyBinding Key="BrowserForward" Command="{Binding CurrentTab.GoForwardCommand}"/>-->
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -61,32 +71,65 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3">
-                <StackPanel.Resources>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonCustom}" x:Key="IconButton">
-                        <Setter Property="Width" Value="32"/>
-                        <Setter Property="Height" Value="32"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        <Setter Property="Cursor" Value="Hand"/>
-                        <Setter Property="Foreground" Value="#616161"/>
-                    </Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource IconButton}" x:Key="IconButtonActive">
-                        <Setter Property="Foreground" Value="#1e88e5"/>
-                    </Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource IconButton}"/>
-                    <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource PackIcon24}"/>
-                </StackPanel.Resources>
-                <Button Style="{StaticResource IconButtonActive}">
-                    <materialDesign:PackIcon Kind="TableLarge"/>
-                </Button>
-                <Button>
-                    <materialDesign:PackIcon Kind="ViewGrid"/>
-                </Button>
-                <Button>
-                    <materialDesign:PackIcon Kind="ViewList" Height="30" Width="30"/>
-                </Button>
+            <Grid.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource ButtonCustom}" x:Key="IconButton">
+                    <Setter Property="Width" Value="32"/>
+                    <Setter Property="Height" Value="32"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="Foreground" Value="#616161"/>
+                </Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}" x:Key="IconButtonActive">
+                    <Setter Property="Foreground" Value="#1e88e5"/>
+                </Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}"/>
+                <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource PackIcon24}"/>
+            </Grid.Resources>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="3">
+                <Button Style="{StaticResource IconButton}" Content="{materialDesign:PackIcon ExternalLink}"
+                        Command="{Binding RunFileCommand}"/>
+                <controls:HorizontalSeparator/>
+                <Button Style="{StaticResource IconButton}" Content="{materialDesign:PackIcon FolderMove}"
+                        Command="{Binding RunExplorerCommand}"
+                        ToolTip="Run Explorer"/>
+                <Button Style="{StaticResource IconButton}" Content="{materialDesign:PackIcon Terminal}"
+                        Command="{Binding RunTerminalCommand}"
+                        ToolTip="Run terminal"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3" VerticalAlignment="Stretch">
+                <ItemsControl ItemsSource="{Binding ViewModes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Button Style="{StaticResource IconButtonActive}" 
+                                        ToolTip="{Binding Title}"
+                                        Visibility="{Binding IsActive, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                        Command="{Binding Value.ChangeActiveViewModeCommand, Source={StaticResource ViewModelResource}}"
+                                        CommandParameter="{Binding}">
+                                    <materialDesign:PackIcon Kind="{Binding IconName}"
+                                                             Width="{Binding IconSize}"
+                                                             Height="{Binding IconSize}"/>
+                                </Button>
+                                <Button Style="{StaticResource IconButton}" 
+                                        ToolTip="{Binding Title}"
+                                        Visibility="{Binding IsActive, Converter={StaticResource Boolean2VisibilityReConverter}}"
+                                        Command="{Binding Value.ChangeActiveViewModeCommand, Source={StaticResource ViewModelResource}}"
+                                        CommandParameter="{Binding}">
+                                    <materialDesign:PackIcon Kind="{Binding IconName}"
+                                                             Width="{Binding IconSize}"
+                                                             Height="{Binding IconSize}"/>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
@@ -94,23 +137,6 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <!--<TreeView Grid.Column="0" Width="300">
-            <TreeViewItem Header="C:" IsExpanded="True">
-                <TreeViewItem Header="Program Files"/>
-                <TreeViewItem Header="Program Files (x86)"/>
-                <TreeViewItem Header="Users">
-                    <TreeViewItem Header="SU"/>
-                </TreeViewItem>
-                <TreeViewItem Header="Windows"/>
-            </TreeViewItem>
-            <TreeViewItem Header="D:">
-                <TreeViewItem Header="Some Folder">
-                    <TreeViewItem Header="main.cpp"/>
-                    <TreeViewItem Header="Program.cs"/>
-                </TreeViewItem>
-            </TreeViewItem>
-            <TreeViewItem Header="E:"/>
-        </TreeView>-->
             <hc:TabControl Grid.Column="1" ShowCloseButton="True" IsDraggable="True" IsAnimationEnabled="True"
                            ItemsSource="{Binding Tabs}"
                            SelectedItem="{Binding CurrentTab}"
@@ -165,68 +191,141 @@
                                 </TextBox>
                                 <hc:TextBox Grid.Column="2" Margin="1 0 0 0" hc:InfoElement.Placeholder="Search"/>
                             </Grid>
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding CurrentFolder.Files}"
-                                  AutoGenerateColumns="False"
-                                  IsReadOnly="True" SelectionUnit="FullRow"
-                                  Background="Transparent">
-                                <DataGrid.CellStyle>
-                                    <Style TargetType="DataGridCell">
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="Padding" Value="3"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                                    <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </DataGrid.CellStyle>
-                                <DataGrid.RowStyle>
-                                    <Style TargetType="DataGridRow">
-                                        <Setter Property="Padding" Value="0"/>
-                                        <!--<Setter Property="Background" Value="Transparent"/>-->
-                                        <!--<Setter Property="Height" Value="20"/>-->
-                                        <!--<Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>-->
-                                        <EventSetter Event="MouseDown" Handler="OnFileMouseDown"/>
-                                        <EventSetter Event="MouseDoubleClick" Handler="OnFileDoubleClick"/>
-                                        <!--<EventSetter Event="KeyUp" Handler="OnFileKeyUp"/>-->
-                                        <EventSetter Event="KeyDown" Handler="OnFileKeyDown"/>
-                                        <Setter Property="ContextMenu" Value="{StaticResource FileContextMenu}"/>
-                                    </Style>
-                                </DataGrid.RowStyle>
-                                <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
+                            <Grid Grid.Row="1" Name="FSGrid">
+                                <DataGrid ItemsSource="{Binding CurrentFolder.Files}"
+                                          AutoGenerateColumns="False"
+                                          IsReadOnly="True" SelectionUnit="FullRow"
+                                          Background="Transparent"
+                                          Visibility="{Binding Value.TableViewMode.IsActive, Source={StaticResource ViewModelResource}, Converter={StaticResource Boolean2VisibilityConverter}}"
+                                          SelectedItem="{Binding SelectedFile}">
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="Margin" Value="0"/>
+                                            <Setter Property="Padding" Value="3"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                                        <Border Padding="{TemplateBinding Padding}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </DataGrid.CellStyle>
+                                    <DataGrid.RowStyle>
+                                        <Style TargetType="DataGridRow" BasedOn="{StaticResource FileItem}">
+                                            <Setter Property="Padding" Value="0"/>
+                                        </Style>
+                                    </DataGrid.RowStyle>
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="{x:Static properties:Resources.FM_Table_Name}"
                                                         SortMemberPath="ComparableFile"
                                                         Width="300">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                                    <Image Source="{Binding IconSmallSource}" Width="16"
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                        <Image Source="{Binding IconSmallSource}" Width="16"
                                                        VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
+                                                        <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
                                                            VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_ModifiedDate}"
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_ModifiedDate}"
                                                     Binding="{Binding ModifiedDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
                                                     Width="120"/>
-                                    <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_Size}" 
-                                                    Binding="{Binding Size}"
+                                        <DataGridTextColumn Header="{x:Static properties:Resources.FM_Table_Size}" 
+                                                    Binding="{Binding Size0}"
                                                     Width="100"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <ListView Visibility="{Binding Value.GridViewMode.IsActive, 
+                                              Source={StaticResource ViewModelResource}, 
+                                              Converter={StaticResource Boolean2VisibilityConverter}}"
+                                          SelectedItem="{Binding SelectedFile}"
+                                          BorderThickness="0"
+                                          ItemsSource="{Binding CurrentFolder.Files}"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          Style="{x:Null}">
+                                    <ListView.Resources>
+                                        <Style TargetType="ListViewItem" BasedOn="{StaticResource FileItem}">
+                                            <Setter Property="Margin" Value="2"/>
+                                            <!--<Setter Property="ToolTip">
+                                                <Setter.Value>
+                                                    <MultiBinding StringFormat="{}{0}: {1}&#x0d;&#x0a;{2}: {3}&#x0d;&#x0a;{4}: {5}">
+                                                        <Binding Source="{x:Static properties:Resources.FM_Table_Name}"/>
+                                                        <Binding Path="ShortName"/>
+                                                        <Binding Source="{x:Static properties:Resources.FM_Table_ModifiedDate}"/>
+                                                        <Binding Path="ModifiedDate"/>
+                                                        <Binding Source="{x:Static properties:Resources.FM_Table_Size}"/>
+                                                        <Binding Path="Size2"/>
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>-->
+                                        </Style>
+                                    </ListView.Resources>
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <StackPanel Margin="5"
+                                                            Width="64" Height="64">
+                                                    <Image Source="{Binding IconLargeSource}" MaxWidth="32" MaxHeight="32" HorizontalAlignment="Center"/>
+                                                    <TextBlock TextAlignment="Center" Margin="0 2 0 0" 
+                                                               Text="{Binding ShortName}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                                <ListView Visibility="{Binding Value.ListViewMode.IsActive, 
+                                              Source={StaticResource ViewModelResource}, 
+                                              Converter={StaticResource Boolean2VisibilityConverter}}"
+                                          SelectedItem="{Binding SelectedFile}"
+                                          ItemsSource="{Binding CurrentFolder.Files}"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                          ScrollViewer.PanningMode="HorizontalOnly"
+                                          Style="{x:Null}"
+                                          VerticalAlignment="Top"
+                                          Padding="0 2"
+                                          BorderThickness="0">
+                                    <ListView.Resources>
+                                        <Style TargetType="ListViewItem" BasedOn="{StaticResource FileItem}">
+                                            <Setter Property="Margin" Value="2 0"/>
+                                            <Setter Property="Padding" Value="4 1"/>
+                                        </Style>
+                                    </ListView.Resources>
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Vertical" 
+                                                       Height="{Binding ElementName=FSGrid, Path=ActualHeight, Converter={StaticResource FromActualHeightConverter}}"/>
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid MinWidth="70" MaxWidth="200">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                    <Image Source="{Binding IconSmallSource}" Width="16"
+                                                           VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ShortName}" Margin="3 0 0 0"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
                         </Grid>
                     </DataTemplate>
                 </hc:TabControl.ContentTemplate>

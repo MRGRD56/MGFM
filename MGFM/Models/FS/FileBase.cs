@@ -35,7 +35,8 @@ namespace MGFM.Models.FS
         public abstract Icon IconSmall { get; }
         public abstract Icon IconLarge { get; }
         public abstract string ShortName { get; }
-        public abstract FileSize Size { get; }
+        public abstract FileSize Size0 { get; }
+        public abstract FileSize Size2 { get; }
         public DateTime ModifiedDate => Info.LastWriteTime;
 
 

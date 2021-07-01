@@ -22,7 +22,8 @@ namespace MGFM.Models.FS
 
         public override string ShortName => Info.Extension == ".lnk" ? Info.Name[..^4] : Info.Name;
 
-        public override FileSize Size => new(Info.Length);
+        public override FileSize Size0 => new(Info.Length, 0);
+        public override FileSize Size2 => new(Info.Length, 2);
 
         public void Open() => FilesExtensions.Open(Path);
         public void OpenWith() => FilesExtensions.OpenWith(Path);

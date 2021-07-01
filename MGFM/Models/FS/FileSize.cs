@@ -33,14 +33,14 @@ namespace MGFM.Models.FS
             SizeInBytes = 0;
         }
 
-        public FileSize(long sizeInBytes)
+        public FileSize(long sizeInBytes, int roundDecimals)
         {
             SizeInBytes = sizeInBytes;
             foreach (var (key, (bytes, minBytes, _)) in Units.Reverse())
             {
                 if (sizeInBytes < minBytes) continue;
 
-                Value = Convert.ToInt64(Math.Round((double) sizeInBytes / bytes));
+                Value = Convert.ToInt64(Math.Round((double) sizeInBytes / bytes, roundDecimals));
                 Unit = key;
                 break;
             }
